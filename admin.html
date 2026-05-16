@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Dona Tônia</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --verde:       #2d6a4f;
+    --verde-claro: #52b788;
+    --laranja:     #f4a261;
+    --vermelho:    #e63946;
+    --azul:        #457b9d;
+    --fundo:       #f1f3f0;
+    --branco:      #ffffff;
+    --texto:       #1a1a2e;
+    --cinza:       #888;
+    --sombra:      0 4px 20px rgba(0,0,0,0.09);
+    --radius:      14px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--fundo); color:var(--texto); }
+
+  /* LOGIN */
+  #tela-login {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--verde) 0%, var(--verde-claro) 100%);
+  }
+  .login-box {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 32px;
+    width: 340px;
+    text-align: center;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  }
+  .login-box h1 { font-family:'Syne',sans-serif; font-size:1.6rem; margin-bottom:6px; }
+  .login-box p  { color:var(--cinza); font-size:0.9rem; margin-bottom:24px; }
+  .login-box input {
+    width:100%; padding:12px 14px;
+    border:1.5px solid #ddd; border-radius:10px;
+    font-size:1rem; font-family:inherit;
+    margin-bottom:14px; outline:none;
+  }
+  .login-box input:focus { border-color:var(--verde); }
+  .btn-entrar {
+    width:100%; background:var(--verde); color:white;
+    border:none; border-radius:12px; padding:13px;
+    font-size:1rem; font-weight:700; cursor:pointer;
+    transition: background 0.2s;
+  }
+  .btn-entrar:hover { background:var(--verde-claro); }
+  .erro-login { color:var(--vermelho); font-size:0.85rem; margin-top:10px; display:none; }
+
+  /* ADMIN LAYOUT */
+  #tela-admin { display:none; }
+  .admin-header {
+    background:var(--verde); color:white;
+    padding:16px 24px; display:flex;
+    align-items:center; justify-content:space-between;
+    box-shadow:0 2px 10px rgba(0,0,0,0.15);
+  }
+  .admin-header h1 { font-family:'Syne',sans-serif; font-size:1.3rem; }
+  .btn-sair {
+    background:rgba(255,255,255,0.2); border:none;
+    border-radius:10px; color:white; padding:8px 14px;
+    font-weight:700; cursor:pointer; font-size:0.85rem;
+  }
+
+  /* ABAS */
+  .abas {
+    display:flex; background:white;
+    border-bottom:2px solid #e0e0e0;
+    overflow-x:auto; gap:0;
+  }
+  .aba {
+    padding:14px 20px; font-weight:700;
+    cursor:pointer; border-bottom:3px solid transparent;
+    white-space:nowrap; font-size:0.9rem;
+    transition:all 0.2s; color:var(--cinza);
+  }
+  .aba.ativa { border-bottom-color:var(--verde); color:var(--verde); }
+
+  .conteudo { padding:24px; max-width:980px; margin:0 auto; }
+
+  /* CARDS STAT */
+  .stats { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin-bottom:24px; }
+  .stat-card {
+    background:white; border-radius:var(--radius);
+    padding:16px; box-shadow:var(--sombra);
+    text-align:center;
+  }
+  .stat-card .num { font-family:'DM Sans',sans-serif; font-size:1.2rem; font-weight:800; }
+  .stat-card .leg { font-size:0.8rem; color:var(--cinza); margin-top:4px; }
+
+  /* FORMULARIO */
+  .card-form {
+    background:white; border-radius:var(--radius);
+    padding:22px; box-shadow:var(--sombra); margin-bottom:10px;
+  }
+  .card-form h2 { font-family:'Syne',sans-serif; font-size:1.1rem; margin-bottom:16px; }
+  .form-grid {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .campo-admin { display:flex; flex-direction:column; gap:4px; }
+  .campo-admin label { font-size:0.8rem; font-weight:700; color:var(--cinza); }
+  .campo-admin input, .campo-admin select {
+    border:1.5px solid #ddd; border-radius:10px;
+    padding:9px 12px; font-size:0.9rem;
+    font-family:inherit; outline:none;
+  }
+  .campo-admin input:focus, .campo-admin select:focus { border-color:var(--verde); }
+
+  /* Toggle desconto */
+  .toggle-wrap { display:flex; align-items:center; gap:10px; margin:10px 0; }
+  .toggle {
+    width:46px; height:26px; border-radius:50px;
+    background:#ccc; cursor:pointer; position:relative;
+    transition:background 0.2s; border:none; outline:none;
+  }
+  .toggle::after {
+    content:''; position:absolute; top:3px; left:3px;
+    width:20px; height:20px; border-radius:50%;
+    background:white; transition:transform 0.2s;
+  }
+  .toggle.on { background:var(--verde); }
+  .toggle.on::after { transform:translateX(20px); }
+  .toggle-label { font-size:0.88rem; font-weight:700; }
+
+  /* Botões */
+  .btn-acao {
+    padding:10px 18px; border-radius:12px; border:none;
+    font-weight:800; font-size:0.88rem; cursor:pointer;
+    transition:all 0.15s;
+  }
+  .btn-verde  { background:var(--verde); color:white; }
+  .btn-verde:hover { background:var(--verde-claro); }
+  .btn-laranja { background:var(--laranja); color:white; }
+  .btn-laranja:hover { opacity:0.88; }
+  .btn-vermelho { background:var(--vermelho); color:white; }
+  .btn-vermelho:hover { opacity:0.88; }
+  .btn-azul { background:var(--azul); color:white; }
+  .btn-azul:hover { opacity:0.88; }
+
+  /* LISTA PRODUTOS */
+  .produto-linha {
+    display:flex; align-items:center; gap:12px;
+    background:white; border-radius:var(--radius);
+    padding:12px 16px; margin-bottom:10px;
+    box-shadow:var(--sombra);
+  }
+  .produto-linha img {
+    width:54px; height:54px; border-radius:10px; object-fit:cover;
+  }
+  .prod-info { flex:1; }
+  .prod-info strong { display:block; font-size:0.95rem; }
+  .prod-info span { font-size:0.8rem; color:var(--cinza); }
+  .prod-acoes { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+
+  .badge-on  { background:var(--verde); color:white; border-radius:50px; font-size:0.72rem; padding:2px 8px; font-weight:800; }
+  .badge-off { background:#eee; color:var(--cinza); border-radius:50px; font-size:0.72rem; padding:2px 8px; font-weight:800; }
+
+  /* GRAFICO */
+  .bar-chart { display:flex; align-items:flex-end; gap:10px; height:180px; padding:0 0 4px; }
+  .bar-item  { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .bar {
+    width:100%; border-radius:8px 8px 0 0;
+    background:var(--verde); transition:height 0.5s ease;
+    min-height:4px;
+  }
+  .bar-nome { font-size:0.68rem; text-align:center; color:var(--cinza); }
+  .bar-val  { font-size:0.72rem; font-weight:800; }
+
+  /* ESTOQUE */
+  .estoque-linha {
+    background:white; border-radius:var(--radius);
+    padding:14px 18px; margin-bottom:10px;
+    box-shadow:var(--sombra); display:flex;
+    align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .est-nome { flex:1; font-weight:800; font-size:0.95rem; }
+  .est-campo { display:flex; align-items:center; gap:6px; }
+  .est-campo label { font-size:0.78rem; color:var(--cinza); font-weight:700; }
+  .est-campo input, .est-campo select {
+    border:1.5px solid #ddd; border-radius:10px;
+    padding:6px 10px; font-size:0.88rem; width:120px;
+    font-family:inherit; outline:none;
+  }
+  .est-campo input:focus, .est-campo select:focus { border-color:var(--verde); }
+
+  /* FINANCEIRO */
+  .linha-fin {
+    background:white; border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:10px;
+    box-shadow:var(--sombra);
+  }
+  .linha-fin-top {
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  }
+  .linha-fin strong { font-size:0.95rem; display:block; }
+  .linha-fin small { color:var(--cinza); font-size:0.8rem; }
+  .linha-fin .valor { font-family:'Syne',sans-serif; font-weight:900; color:var(--verde); }
+  .linha-fin .valor.saida { color:var(--vermelho); }
+  .linha-fin-itens {
+    margin-top:10px;
+    background:#f8f8f8;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:0.85rem;
+    color:#333;
+    line-height:1.4;
+  }
+  .linha-fin-botoes {
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+    margin-top:10px;
+  }
+
+  /* MODAL SENHA EXCLUIR */
+  .overlay-senha {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .overlay-senha.aberto { display:flex; }
+  .modal-senha {
+    width:100%;
+    max-width:420px;
+    background:white;
+    border-radius:22px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+    padding:22px;
+  }
+  .modal-senha h3 {
+    font-family:'Syne',sans-serif;
+    font-size:1.15rem;
+    margin-bottom:6px;
+  }
+  .modal-senha p {
+    font-size:0.88rem;
+    color:var(--cinza);
+    margin-bottom:14px;
+  }
+  .modal-senha input {
+    width:100%;
+    padding:12px 14px;
+    border:1.5px solid #ddd;
+    border-radius:12px;
+    outline:none;
+    font-size:1rem;
+    margin-bottom:12px;
+    font-family:inherit;
+  }
+  .modal-senha input:focus { border-color:var(--verde); }
+  .modal-senha .acoes {
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+    flex-wrap:wrap;
+  }
+  .erro-senha {
+    display:none;
+    margin-top:10px;
+    color:var(--vermelho);
+    font-weight:700;
+    font-size:0.85rem;
+  }
+
+  /* TOAST AVISO */
+  #aviso-float {
+    position:fixed;
+    bottom:22px;
+    left:50%;
+    transform:translateX(-50%) translateY(18px);
+    min-width:280px;
+    max-width:calc(100vw - 32px);
+    background:rgba(255,255,255,0.92);
+    color:var(--texto);
+    border:1px solid rgba(45, 106, 79, 0.12);
+    backdrop-filter:blur(16px);
+    padding:14px 16px;
+    border-radius:18px;
+    box-shadow:0 18px 38px rgba(0,0,0,0.18);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-weight:700;
+    font-size:0.95rem;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+    z-index:9999;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #aviso-float.show {
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+  #aviso-float.success {
+    border-color:rgba(45,106,79,0.22);
+    background:rgba(82,183,136,0.14);
+  }
+  #aviso-float.warning {
+    border-color:rgba(244,162,97,0.22);
+    background:rgba(244,162,97,0.14);
+  }
+  #aviso-float.danger {
+    border-color:rgba(230,57,70,0.22);
+    background:rgba(230,57,70,0.14);
+  }
+  #aviso-float .icon {
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:var(--verde);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1rem;
+    flex-shrink:0;
+  }
+  #aviso-float.success .icon { background:var(--verde); }
+  #aviso-float.warning .icon { background:var(--laranja); }
+  #aviso-float.danger .icon  { background:var(--vermelho); }
+  #aviso-float .text { line-height:1.3; overflow:hidden; text-overflow:ellipsis; }
+
+  /* Seções */
+  .secao { display:none; }
+  .secao.ativa { display:block; }
+
+  /* Link para loja */
+  .link-loja {
+    display:inline-block;
+    background:var(--laranja); color:white;
+    border-radius:8px;
+    padding:8px 14px;
+    text-decoration:none; font-weight:700; font-size:0.85rem;
+    box-shadow:0 2px 8px rgba(0,0,0,0.12);
+    transition:transform 0.15s;
+  }
+  .link-loja:hover { transform:scale(1.03); }
+
+  .overlay-categoria-admin {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .overlay-categoria-admin.aberto { display:flex; }
+  .modal-categoria-admin {
+    width:100%;
+    max-width:460px;
+    background:white;
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.22);
+  }
+  .modal-categoria-admin h2 {
+    font-family:'Syne',sans-serif;
+    font-size:1.2rem;
+    margin-bottom:8px;
+  }
+  .modal-categoria-admin p {
+    font-size:0.95rem;
+    color:var(--cinza);
+    margin-bottom:16px;
+  }
+  .modal-categoria-admin .form-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .modal-categoria-admin .campo-admin input,
+  .modal-categoria-admin .campo-admin select {
+    width:100%;
+    border:1.5px solid #ddd;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:0.95rem;
+    outline:none;
+    font-family:inherit;
+  }
+  .modal-categoria-admin .campo-admin input:focus,
+  .modal-categoria-admin .campo-admin select:focus { border-color:var(--verde); }
+
+  /* BARRA DE BUSCA */
+  .busca-container {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 20px;
+    gap: 8px;
+    max-width: 340px;
+  }
+  .busca-container.expandido { max-width: 100%; }
+  .busca-icon { color: var(--cinza); font-size: 1.1rem; flex-shrink: 0; }
+  .busca-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 0;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: var(--texto);
+    background: transparent;
+  }
+  .busca-input::placeholder { color: var(--cinza); }
+  .busca-container:focus-within {
+    border-color: var(--verde);
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+  }
+  .busca-limpar {
+    background: none;
+    border: none;
+    color: var(--cinza);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0;
+    display: none;
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+  .busca-limpar:hover { color: var(--texto); }
+  .busca-limpar.visivel { display: block; }
+  .resultado-vazio {
+    text-align: center;
+    padding: 30px;
+    color: var(--cinza);
+    background: white;
+    border-radius: var(--radius);
+    margin: 10px 0;
+  }
+
+  @media (max-width:480px) {
+    .form-grid { grid-template-columns:1fr; }
+    .conteudo { padding:14px; }
+    .produto-linha { flex-wrap:wrap; }
+    .login-box { width:100%; max-width:340px; }
+    .busca-container { max-width: 100%; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- ======================== LOGIN ======================== -->
+<div id="tela-login">
+  <div class="login-box">
+    <h1>🔐 Admin</h1>
+    <p>Painel da Frutaria Dona Tônia</p>
+    <input type="text" id="usuario-input" placeholder="Digite o usuário" onkeydown="if(event.key==='Enter')entrar()">
+    <input type="password" id="senha-input" placeholder="Digite a senha" onkeydown="if(event.key==='Enter')entrar()" oninput="this.value=this.value.replace(/\s/g,'')">
+    <button class="btn-entrar" onclick="entrar()">Entrar</button>
+    <div class="erro-login" id="erro-login">Usuário ou senha incorretos!</div>
+  </div>
+</div>
+
+<!-- ======================== ADMIN ======================== -->
+<div id="tela-admin">
+
+  <div class="admin-header">
+    <h1>🍃 Admin — Dona Tônia</h1>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <a class="link-loja" href="index.html" target="_self">🛒 Voltar para a Loja ↗</a>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </div>
+
+  <!-- ABAS -->
+  <div class="abas">
+    <div class="aba ativa" onclick="mudarAba('produtos', this)">📦 Produtos</div>
+    <div class="aba" onclick="mudarAba('estoque', this)">📊 Estoque</div>
+    <div class="aba" onclick="mudarAba('vendas', this)">🏆 Mais Vendidos</div>
+    <div class="aba" onclick="mudarAba('financeiro', this)">💰 Financeiro</div>
+    <div class="aba" onclick="mudarAba('config', this)">⚙️ Configurações</div>
+  </div>
+
+  <div class="conteudo">
+
+    <!-- ======== ABA PRODUTOS ======== -->
+    <div class="secao ativa" id="sec-produtos">
+
+      <div class="busca-container">
+        <span class="busca-icon">🔎</span>
+        <input type="text" class="busca-input" id="busca-produtos" placeholder="Buscar produto por nome, ID ou categoria..."
+          oninput="filtrarProdutos(this.value)">
+        <button class="busca-limpar" id="limpar-busca-produtos" onclick="limparBuscaProdutos()">✕</button>
+      </div>
+
+      <div style="display:flex; justify-content:flex-start; margin-bottom:16px;">
+        <button class="btn-acao btn-laranja" onclick="abrirModalCategoriaAdmin()">+ Categoria</button>
+      </div>
+
+      <div class="card-form" style="margin-bottom:20px;">
+        <h2>📂 Categorias Cadastradas</h2>
+        <div id="lista-categorias"></div>
+      </div>
+
+      <div class="card-form">
+        <h2 id="form-titulo">➕ Adicionar Produto</h2>
+        <input type="hidden" id="edit-id" value="">
+
+        <div class="form-grid">
+          <div class="campo-admin">
+            <label>Nome do produto *</label>
+            <input type="text" id="p-nome" placeholder="Ex: Laranja Pera">
+          </div>
+          <div class="campo-admin">
+            <label>Categoria *</label>
+            <select id="p-cat"></select>
+          </div>
+          <div class="campo-admin">
+            <label>Preço (R$) *</label>
+            <input type="number" id="p-preco" placeholder="0.00" step="0.01" min="0">
+          </div>
+          <div class="campo-admin">
+            <label>Unidade de venda</label>
+            <select id="p-unidade">
+              <option value="kg">kg</option>
+              <option value="unidade">unidade</option>
+              <option value="caixa">caixa</option>
+              <option value="grama">grama</option>
+              <option value="maço">maço</option>
+              <option value="dúzia">dúzia</option>
+            </select>
+          </div>
+          <div class="campo-admin" style="grid-column:span 2">
+            <label>URL da foto *</label>
+            <input type="text" id="p-foto" placeholder="https://... cole link de imagem">
+          </div>
+        </div>
+
+        <!-- Desconto -->
+        <div style="margin-top:14px; padding:14px; background:#f8f8f8; border-radius:12px;">
+          <div class="toggle-wrap">
+            <button class="toggle" id="toggle-desc" onclick="toggleDesconto()"></button>
+            <span class="toggle-label" id="toggle-label">Desconto: <strong>Desativado</strong></span>
+          </div>
+          <div id="campo-perc" style="display:none; margin-top:8px;">
+            <div class="campo-admin">
+              <label>Percentual de desconto (%)</label>
+              <input type="number" id="p-desconto" placeholder="Ex: 15" min="1" max="99">
+            </div>
+            <p style="font-size:0.78rem; color:var(--cinza); margin-top:6px;">
+              ⚠️ O desconto só aparece para o cliente quando estiver <strong>Ativado</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+          <button class="btn-acao btn-verde" onclick="salvarProduto()">💾 Salvar Produto</button>
+          <button class="btn-acao btn-laranja" onclick="cancelarEdicao()" id="btn-cancelar" style="display:none">✕ Cancelar</button>
+        </div>
+      </div>
+
+      <div id="lista-admin-produtos"></div>
+    </div>
+
+    <!-- ======== ABA ESTOQUE ======== -->
+    <div class="secao" id="sec-estoque">
+
+      <div class="busca-container">
+        <span class="busca-icon">🔎</span>
+        <input type="text" class="busca-input" id="busca-estoque" placeholder="Buscar produto no estoque..."
+          oninput="filtrarEstoque(this.value)">
+        <button class="busca-limpar" id="limpar-busca-estoque" onclick="limparBuscaEstoque()">✕</button>
+      </div>
+
+      <div class="card-form" style="margin-bottom:20px">
+        <h2>📦 Controle de Estoque</h2>
+        <p style="font-size:0.85rem; color:var(--cinza); margin-top:4px;">
+          Defina a quantidade em estoque e acompanhe as vendas registradas.
+        </p>
+      </div>
+
+      <div id="lista-estoque"></div>
+
+      <button class="btn-acao btn-verde" onclick="salvarEstoque()" style="margin-top:10px">
+        💾 Salvar Estoque
+      </button>
+
+      <!-- Entrada de Estoque -->
+      <div class="card-form" style="margin-top:30px;">
+        <h2>📥 Entrada de Estoque (Compras)</h2>
+        <p style="font-size:0.85rem; color:var(--cinza); margin-top:4px;">
+          Registre compras do fornecedor. Requer senha master.
+        </p>
+
+        <div class="form-grid">
+          <div class="campo-admin">
+            <label>Produto</label>
+            <select id="entrada-produto"></select>
+          </div>
+          <div class="campo-admin">
+            <label>Quantidade</label>
+            <input type="number" id="entrada-qtd" step="0.01" min="0" placeholder="0">
+          </div>
+          <div class="campo-admin">
+            <label>Unidade</label>
+            <select id="entrada-unidade">
+              <option value="unidade">Unidade</option>
+              <option value="kg">Kg</option>
+              <option value="caixa">Caixa</option>
+              <option value="grama">Grama</option>
+              <option value="maço">Maço</option>
+            </select>
+          </div>
+          <div class="campo-admin">
+            <label>Valor Unitário (R$) *</label>
+            <input type="number" id="entrada-valor-unitario" step="0.01" min="0" placeholder="0.00">
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn-acao btn-azul" onclick="registrarEntradaEstoque()">➕ Registrar Entrada</button>
+        </div>
+      </div>
+
+      <!-- Desperdícios -->
+      <div class="card-form" style="margin-top:20px;">
+        <h2>🗑️ Registrar Desperdício</h2>
+        <p style="font-size:0.85rem; color:var(--cinza); margin-top:4px;">
+          Registre perdas de produtos. Calcula prejuízo baseado no custo fornecedor.
+        </p>
+
+        <div class="form-grid">
+          <div class="campo-admin">
+            <label>Produto</label>
+            <select id="desperdicio-produto"></select>
+          </div>
+          <div class="campo-admin">
+            <label>Quantidade Perdida</label>
+            <input type="number" id="desperdicio-qtd" step="0.01" min="0" placeholder="0">
+          </div>
+          <div class="campo-admin">
+            <label>Unidade</label>
+            <select id="desperdicio-unidade">
+              <option value="unidade">Unidade</option>
+              <option value="kg">Kg</option>
+              <option value="caixa">Caixa</option>
+              <option value="grama">Grama</option>
+              <option value="maço">Maço</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn-acao btn-vermelho" onclick="registrarDesperdicio()">🗑️ Registrar Desperdício</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ======== ABA MAIS VENDIDOS ======== -->
+    <div class="secao" id="sec-vendas">
+
+      <div class="busca-container">
+        <span class="busca-icon">🔎</span>
+        <input type="text" class="busca-input" id="busca-vendas" placeholder="Buscar produto por nome..."
+          oninput="filtrarVendas(this.value)">
+        <button class="busca-limpar" id="limpar-busca-vendas" onclick="limparBuscaVendas()">✕</button>
+      </div>
+
+      <div class="card-form" style="margin-bottom:20px">
+        <h2>🏆 Produtos Mais Vendidos</h2>
+        <p style="font-size:0.85rem; color:var(--cinza); margin-top:4px;">
+          Baseado no campo <code>vendas</code> atualizado automaticamente.
+        </p>
+      </div>
+
+      <div id="ranking-lista" style="margin-bottom:20px;"></div>
+
+      <div class="card-form">
+        <div class="bar-chart" id="grafico-vendas"></div>
+      </div>
+    </div>
+
+    <!-- ======== ABA FINANCEIRO ======== -->
+    <div class="secao" id="sec-financeiro">
+
+      <div class="card-form">
+        <h2>💰 Financeiro (Caixa)</h2>
+      </div>
+
+      <div class="stats" id="stats-fin"></div>
+
+      <div class="card-form">
+        <h2>📌 Registrar Despesa</h2>
+
+        <div class="form-grid">
+          <div class="campo-admin">
+            <label>Tipo</label>
+            <select id="d-tipo">
+              <option value="fixa">Fixa</option>
+              <option value="variavel">Variável</option>
+            </select>
+          </div>
+          <div class="campo-admin">
+            <label>Valor (R$)</label>
+            <input type="number" id="d-valor" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div class="campo-admin" style="grid-column:span 2">
+            <label>Descrição</label>
+            <input type="text" id="d-desc" placeholder="Ex: Compra de embalagens">
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn-acao btn-vermelho" onclick="adicionarDespesa()">➕ Registrar Despesa</button>
+        </div>
+      </div>
+
+      <div class="card-form">
+        <h2>📉 Despesas Registradas</h2>
+        <div id="lista-despesas"></div>
+      </div>
+
+      <div class="card-form">
+        <h2>🗑️ Desperdícios Registrados (Contabilizados)</h2>
+        <div id="lista-desperdicios"></div>
+      </div>
+
+      <div class="card-form">
+        <h2>🧾 Pedidos / Vendas Registradas</h2>
+
+        <div class="busca-container" style="margin-bottom:16px; max-width:100%;">
+          <span class="busca-icon">🔎</span>
+          <input type="text" class="busca-input" id="busca-financeiro" placeholder="Buscar pedido por cliente, data ou valor..."
+            oninput="filtrarFinanceiro(this.value)">
+          <button class="busca-limpar" id="limpar-busca-financeiro" onclick="limparBuscaFinanceiro()">✕</button>
+        </div>
+
+        <div id="lista-pedidos"></div>
+      </div>
+
+    </div>
+
+    <!-- ======== ABA CONFIGURAÇÕES ======== -->
+    <div class="secao" id="sec-config">
+
+      <div class="card-form">
+        <h2>🔐 Informações de Acesso</h2>
+        <p style="font-size:0.85rem; color:var(--cinza); margin-top:4px;">
+          ⚠️ Sistema travado: senhas só podem ser alteradas no arquivo <b>dados.js</b>.
+        </p>
+
+        <div style="margin-top:14px; display:flex; flex-direction:column; gap:8px; font-size:0.9rem;">
+          <div>👤 <strong>Usuário Admin:</strong> <span id="config-admin-usuario">—</span></div>
+          <div>🔑 <strong>Senha Admin:</strong> <span id="config-admin-senha">—</span></div>
+          <div>👤 <strong>Usuário Master:</strong> <span id="config-master-usuario">—</span></div>
+          <div>🔑 <strong>Senha Master:</strong> <span id="config-master-senha">—</span></div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn-acao btn-verde" onclick="alert('🔒 Travado: senhas só podem ser alteradas no arquivo dados.js')">
+            🔒 Sistema Travado
+          </button>
+        </div>
+      </div>
+
+      <div class="card-form">
+        <h2>🔄 Reiniciar Loja</h2>
+        <p style="font-size:0.85rem; color:var(--cinza); margin-top:4px;">
+          Esta ação zera vendas, estoque e registros temporários. Requer senha do criador.
+        </p>
+        <button class="btn-acao btn-vermelho" onclick="resetarLoja()">🔄 Reiniciar Loja</button>
+      </div>
+
+      <div class="card-form">
+        <h2>🏪 Última Abertura da Loja</h2>
+        <p id="ultima-abertura" style="font-size:0.9rem; color:var(--cinza);">—</p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================== MODAL SENHA EXCLUSÃO ======================== -->
+<div class="overlay-senha" id="overlay-senha" onclick="fecharModalSenhaSeFora(event)">
+  <div class="modal-senha" onclick="event.stopPropagation()">
+    <h3 id="senha-modal-titulo">🔐 Confirme a senha</h3>
+    <p id="senha-modal-text">Digite a senha para confirmar a exclusão.</p>
+    <input type="password" id="senha-confirmacao" placeholder="Senha"
+      onkeydown="if(event.key==='Enter')confirmarExclusao()" oninput="this.value=this.value.replace(/\s/g,'')">
+    <div class="acoes">
+      <button class="btn-acao btn-laranja" onclick="fecharModalSenha()">Cancelar</button>
+      <button class="btn-acao btn-vermelho" onclick="confirmarExclusao()">Confirmar</button>
+    </div>
+    <div class="erro-senha" id="erro-senha-confirm">Senha incorreta!</div>
+  </div>
+</div>
+
+<!-- ======================== MODAL SENHA MASTER ======================== -->
+<div class="overlay-senha" id="overlay-master" onclick="fecharModalMasterSeFora(event)">
+  <div class="modal-senha" onclick="event.stopPropagation()">
+    <h3 id="master-modal-titulo">🔒 Autenticação</h3>
+    <p id="master-modal-text">Digite o usuário e a senha para confirmar esta ação.</p>
+    <input type="text" id="usuario-master-confirmacao" placeholder="Usuário"
+      onkeydown="if(event.key==='Enter')confirmarAcaoMaster()">
+    <input type="password" id="senha-master-confirmacao" placeholder="Senha"
+      onkeydown="if(event.key==='Enter')confirmarAcaoMaster()" oninput="this.value=this.value.replace(/\s/g,'')">
+    <div class="acoes">
+      <button class="btn-acao btn-laranja" onclick="fecharModalMaster()">Cancelar</button>
+      <button class="btn-acao btn-vermelho" onclick="confirmarAcaoMaster()">Confirmar</button>
+    </div>
+    <div class="erro-senha" id="erro-master-confirm">Usuário ou senha incorretos!</div>
+  </div>
+</div>
+
+<!-- ======================== MODAL CATEGORIA ======================== -->
+<div class="overlay-categoria-admin" id="overlay-categoria-admin" onclick="fecharModalCategoriaAdmin(event)">
+  <div class="modal-categoria-admin" onclick="event.stopPropagation()">
+    <h2>+ Nova Categoria</h2>
+    <p>Cadastre uma categoria e ela ficará disponível no cadastro de produtos.</p>
+    <div class="form-grid">
+      <div class="campo-admin">
+        <label>ID da categoria</label>
+        <input id="nova-categoria-id-admin" type="text" placeholder="ex: saudaveis" autocomplete="off">
+      </div>
+      <div class="campo-admin">
+        <label>Nome da categoria</label>
+        <input id="nova-categoria-nome-admin" type="text" placeholder="Ex: Saudáveis" autocomplete="off">
+      </div>
+      <div class="campo-admin">
+        <label>Emoji</label>
+        <input id="nova-categoria-emoji-admin" type="text" placeholder="Ex: 🥗" autocomplete="off" maxlength="2">
+      </div>
+      <div class="campo-admin">
+        <label>Cor</label>
+        <input id="nova-categoria-cor-admin" type="color" value="#5ab88e">
+      </div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; margin-top:16px;">
+      <button class="btn-acao btn-laranja" onclick="fecharModalCategoriaAdmin()">Cancelar</button>
+      <button class="btn-acao btn-verde" id="btn-salvar-categoria" onclick="salvarCategoriaAdmin()">Salvar Categoria</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="aviso-float">
+  <span class="icon">✅</span>
+  <span class="text"></span>
+</div>
+
+<script src="dados.js?v=1"></script>
+<script>
+
+// ============================================================
+// CONSTANTES DE LOCALSTORAGE
+// ============================================================
+const LS_PEDIDOS          = "PEDIDOS_DONA_TONIA";
+const LS_DESPESAS         = "DESPESAS_DONA_TONIA";
+const LS_DESPERDICIOS     = "DESPERDICIOS_DONA_TONIA";
+const LS_ENTRADAS_ESTOQUE = "ENTRADAS_ESTOQUE_DONA_TONIA";
+const LS_PRODUTOS         = "PRODUTOS_DONA_TONIA";
+const LS_CARRINHO         = "CARRINHO_DONA_TONIA";
+const LS_ADMIN_USUARIO    = "ADMIN_USUARIO";
+const LS_ADMIN_SENHA      = "ADMIN_SENHA";
+const LS_MASTER_USUARIO   = "MASTER_USUARIO";
+const LS_MASTER_SENHA     = "SENHA_MASTER";
+const LS_RESET_USUARIO    = "RESET_USUARIO";
+const LS_RESET_SENHA      = "RESET_SENHA";
+const LS_ULTIMA_ABERTURA  = "ULTIMA_ABERTURA";
+const LS_ADMIN_LOCK       = "ADMIN_LOCK_DONA_TONIA";
+const LS_CATEGORIAS       = "CATEGORIAS_DONA_TONIA";
+
+// ============================================================
+// VARIÁVEIS GLOBAIS
+// ============================================================
+let descontoAtivo  = false;
+let excluirTipo    = null;
+let excluirId      = null;
+let adminSessionId = null;
+let acaoMaster     = null;
+let tipoAcaoSegura = null;
+let categoriasAdmin = [];
+
+let produtosFiltrados   = [];
+let estoqueFiltrado     = [];
+let vendaFiltradas      = [];
+let financeiroBuscaAtiva = false;
+
+// ============================================================
+// LOGIN / SESSÃO
+// ============================================================
+
+function entrar() {
+  const usuario = document.getElementById('usuario-input').value.trim();
+  const senha   = document.getElementById('senha-input').value;
+
+  // Verifica em CLIENTES_LIBERADOS
+  const cliente = (typeof CLIENTES_LIBERADOS !== 'undefined' ? CLIENTES_LIBERADOS : [])
+    .find(c => c.login === usuario && c.senhaAdmin === senha && c.status === 'ativo');
+
+  if (!cliente) {
+    document.getElementById('erro-login').style.display = 'block';
+    return;
+  }
+
+  // Verifica validade
+  if (cliente.validade && new Date(cliente.validade) < new Date()) {
+    document.getElementById('erro-login').textContent = 'Acesso expirado!';
+    document.getElementById('erro-login').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('erro-login').style.display = 'none';
+  localStorage.setItem(LS_ULTIMA_ABERTURA, new Date().toISOString());
+
+  document.getElementById('tela-login').style.display  = 'none';
+  document.getElementById('tela-admin').style.display  = 'block';
+
+  iniciarSessaoAdmin();
+  iniciarAdmin();
+}
+
+function sair() {
+  document.getElementById('tela-admin').style.display  = 'none';
+  document.getElementById('tela-login').style.display  = 'flex';
+  document.getElementById('senha-input').value  = '';
+  document.getElementById('usuario-input').value = '';
+  document.getElementById('erro-login').style.display = 'none';
+  localStorage.removeItem("CLIENTE_ATUAL");
+}
+
+// ============================================================
+// SESSÃO ADMIN (anti multi-aba)
+// ============================================================
+
+function iniciarSessaoAdmin() {
+  adminSessionId = Date.now().toString();
+  localStorage.setItem(LS_ADMIN_LOCK, adminSessionId);
+  window.addEventListener('storage', e => {
+    if (e.key === LS_ADMIN_LOCK && e.newValue && e.newValue !== adminSessionId) {
+      alert('Uma nova sessão foi iniciada. Faça login novamente.');
+      sair();
+    }
+  });
+}
+
+function forcarLogoutOutrasAbas() {
+  localStorage.setItem(LS_ADMIN_LOCK, Date.now().toString());
+}
+
+// ============================================================
+// INICIAR ADMIN
+// ============================================================
+
+function carregarProdutosAdmin() {
+  try {
+    const produtosSalvos = JSON.parse(localStorage.getItem(LS_PRODUTOS) || 'null');
+    if (Array.isArray(produtosSalvos) && produtosSalvos.length > 0) {
+      PRODUTOS = produtosSalvos;
+    }
+  } catch (e) {
+    console.warn('Erro ao carregar produtos do LocalStorage', e);
+  }
+}
+
+function salvarProdutosAdmin() {
+  localStorage.setItem(LS_PRODUTOS, JSON.stringify(PRODUTOS));
+}
+
+function carregarCategoriasAdmin() {
+  carregarCategoriasAdminComEdicoes();
+}
+
+function salvarCategoriasAdmin() {
+  // Salva TODAS as categorias editadas (incluindo padrões modificadas)
+  // Para as padrões, só salva se foram alteradas; para as extras, salva sempre
+  const todasParaSalvar = categoriasAdmin.filter(cat => {
+    const original = CATEGORIAS.find(orig => orig.id === cat.id);
+    if (!original) return true; // categoria nova (extra)
+    // categoria padrão: salva se foi modificada
+    return original.nome !== cat.nome || original.cor !== cat.cor;
+  });
+  localStorage.setItem(LS_CATEGORIAS, JSON.stringify(todasParaSalvar));
+}
+
+function carregarCategoriasAdminComEdicoes() {
+  // Recarrega aplicando edições salvas sobre as padrões
+  try {
+    const guardado = JSON.parse(localStorage.getItem(LS_CATEGORIAS) || 'null');
+    categoriasAdmin = CATEGORIAS.map(c => ({ ...c })); // cópia das padrões
+
+    if (Array.isArray(guardado) && guardado.length > 0) {
+      guardado.forEach(cat => {
+        const idx = categoriasAdmin.findIndex(c => c.id === cat.id);
+        if (idx !== -1) {
+          categoriasAdmin[idx] = { ...categoriasAdmin[idx], ...cat }; // aplica edições
+        } else {
+          categoriasAdmin.push(cat); // extra nova
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Erro ao carregar categorias', e);
+    categoriasAdmin = CATEGORIAS.map(c => ({ ...c }));
+  }
+}
+
+function iniciarAdmin() {
+  carregarProdutosAdmin();
+  carregarCategoriasAdmin();
+
+  // Popular selects de categoria
+  const sel = document.getElementById('p-cat');
+  sel.innerHTML = '';
+  categoriasAdmin.forEach(c => {
+    const op = document.createElement('option');
+    op.value = c.id; op.textContent = c.nome;
+    sel.appendChild(op);
+  });
+
+  // Popular selects de produto
+  popularSelectsProdutos();
+
+  renderListaProdutos();
+  renderListaCategorias();
+  renderConfig();
+}
+
+function popularSelectsProdutos() {
+  const selEntrada     = document.getElementById('entrada-produto');
+  const selDesperdicio = document.getElementById('desperdicio-produto');
+  selEntrada.innerHTML     = '';
+  selDesperdicio.innerHTML = '';
+  PRODUTOS.forEach(p => {
+    const op1 = document.createElement('option');
+    op1.value = p.id; op1.textContent = p.nome;
+    selEntrada.appendChild(op1);
+    const op2 = document.createElement('option');
+    op2.value = p.id; op2.textContent = p.nome;
+    selDesperdicio.appendChild(op2);
+  });
+}
+
+// ============================================================
+// ABAS
+// ============================================================
+
+function mudarAba(id, el) {
+  limparBuscaProdutos();
+  limparBuscaEstoque();
+  limparBuscaVendas();
+  limparBuscaFinanceiro();
+
+  document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+  document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+  document.getElementById('sec-' + id).classList.add('ativa');
+  el.classList.add('ativa');
+
+  if (id === 'vendas')    renderGrafico();
+  if (id === 'estoque')   renderEstoque();
+  if (id === 'financeiro') renderFinanceiro();
+  if (id === 'config')    renderConfig();
+}
+
+// ============================================================
+// CATEGORIAS
+// ============================================================
+
+function abrirModalCategoriaAdmin() {
+  document.getElementById('nova-categoria-id-admin').value    = '';
+  document.getElementById('nova-categoria-id-admin').disabled = false;
+  document.getElementById('nova-categoria-nome-admin').value  = '';
+  document.getElementById('nova-categoria-emoji-admin').value = '';
+  document.getElementById('nova-categoria-cor-admin').value   = '#5ab88e';
+
+  const overlay = document.getElementById('overlay-categoria-admin');
+  overlay.querySelector('h2').textContent = '+ Nova Categoria';
+  overlay.querySelector('p').textContent  = 'Cadastre uma categoria e ela ficará disponível no cadastro de produtos.';
+  document.getElementById('btn-salvar-categoria').onclick = salvarCategoriaAdmin;
+
+  overlay.classList.add('aberto');
+}
+
+function fecharModalCategoriaAdmin(event) {
+  if (event && event.target && event.target.id !== 'overlay-categoria-admin') return;
+  document.getElementById('overlay-categoria-admin').classList.remove('aberto');
+}
+
+function salvarCategoriaAdmin() {
+  const id    = (document.getElementById('nova-categoria-id-admin').value || '').trim().toLowerCase().replace(/\s+/g, '-');
+  const nome  = (document.getElementById('nova-categoria-nome-admin').value || '').trim();
+  const emoji = (document.getElementById('nova-categoria-emoji-admin').value || '').trim();
+  const cor   = document.getElementById('nova-categoria-cor-admin').value || '#5ab88e';
+
+  if (!id || !nome) { alert('Preencha o ID e o nome da categoria.'); return; }
+  if (!/^[a-z0-9_-]+$/.test(id)) { alert('O ID deve conter apenas letras minúsculas, números, hífen ou underscore.'); return; }
+  if (categoriasAdmin.some(cat => cat.id === id)) { alert('Já existe uma categoria com este ID.'); return; }
+
+  categoriasAdmin.push({ id, nome: emoji ? `${emoji} ${nome}` : nome, cor });
+  salvarCategoriasAdmin();
+  atualizarCategoriasAdmin();
+  document.getElementById('overlay-categoria-admin').classList.remove('aberto');
+  mostrarAviso('Categoria adicionada!', 'success');
+}
+
+function atualizarCategoriasAdmin() {
+  const sel = document.getElementById('p-cat');
+  sel.innerHTML = '';
+  categoriasAdmin.forEach(c => {
+    const op = document.createElement('option');
+    op.value = c.id; op.textContent = c.nome;
+    sel.appendChild(op);
+  });
+  renderListaCategorias();
+}
+
+function renderListaCategorias() {
+  const container = document.getElementById('lista-categorias');
+
+  if (categoriasAdmin.length === 0) {
+    container.innerHTML = '<p style="color:var(--cinza); text-align:center; padding:16px">Nenhuma categoria cadastrada.</p>';
+    return;
+  }
+
+  container.innerHTML = categoriasAdmin.map(cat => {
+    const isPadrao = CATEGORIAS.some(orig => orig.id === cat.id);
+    const qtdProdutos = PRODUTOS.filter(p => p.categoria === cat.id).length;
+    const badge = isPadrao
+      ? '<span style="background:#e8f5e9;color:#2d6a4f;border-radius:50px;padding:1px 8px;font-size:0.7rem;font-weight:800;margin-left:4px;">PADRÃO</span>'
+      : '<span style="background:#fff3e0;color:#e65100;border-radius:50px;padding:1px 8px;font-size:0.7rem;font-weight:800;margin-left:4px;">PERSONALIZADA</span>';
+    const btnExcluir = !isPadrao
+      ? `<button class="btn-acao btn-vermelho" onclick="excluirCategoria('${cat.id}')">🗑️ Excluir</button>`
+      : '';
+    return `
+      <div class="produto-linha" style="margin-bottom:10px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:${cat.cor};display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">
+          ${cat.nome.split(' ')[0]}
+        </div>
+        <div class="prod-info">
+          <strong>${cat.nome}</strong>
+          <span>ID: <code>${cat.id}</code> &nbsp;•&nbsp; ${qtdProdutos} produto(s) ${badge}</span>
+        </div>
+        <div class="prod-acoes">
+          <button class="btn-acao btn-laranja" onclick="editarCategoria('${cat.id}')">✏️ Editar</button>
+          ${btnExcluir}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function editarCategoria(id) {
+  const cat = categoriasAdmin.find(c => c.id === id);
+  if (!cat) return;
+
+  const isPadrao = CATEGORIAS.some(orig => orig.id === cat.id);
+
+  let nomeExibicao = cat.nome;
+  let emojiExibicao = '';
+  const match = cat.nome.match(/^(\S+)\s(.+)$/);
+  if (match) { emojiExibicao = match[1]; nomeExibicao = match[2]; }
+
+  document.getElementById('nova-categoria-id-admin').value    = cat.id;
+  document.getElementById('nova-categoria-id-admin').disabled = true;
+  document.getElementById('nova-categoria-nome-admin').value  = nomeExibicao;
+  document.getElementById('nova-categoria-emoji-admin').value = emojiExibicao;
+  document.getElementById('nova-categoria-cor-admin').value   = cat.cor || '#5ab88e';
+
+  const overlay = document.getElementById('overlay-categoria-admin');
+  overlay.querySelector('h2').textContent = '✏️ Editar Categoria';
+  overlay.querySelector('p').textContent  = isPadrao
+    ? '⚠️ Categoria padrão do sistema. Você pode editar nome, emoji e cor.'
+    : 'Atualize os dados da categoria personalizada.';
+  document.getElementById('btn-salvar-categoria').onclick = () => salvarCategoriaEditada(id);
+
+  overlay.classList.add('aberto');
+}
+
+function salvarCategoriaEditada(id) {
+  const nome  = (document.getElementById('nova-categoria-nome-admin').value || '').trim();
+  const emoji = (document.getElementById('nova-categoria-emoji-admin').value || '').trim();
+  const cor   = document.getElementById('nova-categoria-cor-admin').value || '#5ab88e';
+
+  if (!nome) { alert('Preencha o nome da categoria.'); return; }
+
+  const idx = categoriasAdmin.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  categoriasAdmin[idx] = { ...categoriasAdmin[idx], nome: emoji ? `${emoji} ${nome}` : nome, cor };
+
+  salvarCategoriasAdmin();
+  atualizarCategoriasAdmin();
+  document.getElementById('overlay-categoria-admin').classList.remove('aberto');
+  mostrarAviso('Categoria atualizada!', 'success');
+}
+
+function excluirCategoria(id) {
+  const cat = categoriasAdmin.find(c => c.id === id);
+  if (!cat) return;
+  const usados = PRODUTOS.filter(p => p.categoria === id).length;
+  if (usados > 0) { alert(`Não é possível excluir "${cat.nome}": ${usados} produto(s) usam esta categoria.`); return; }
+  if (confirm(`Excluir a categoria "${cat.nome}"?`)) {
+    categoriasAdmin = categoriasAdmin.filter(c => c.id !== id);
+    salvarCategoriasAdmin();
+    atualizarCategoriasAdmin();
+    mostrarAviso('Categoria excluída!', 'success');
+  }
+}
+
+// ============================================================
+// TOGGLE DESCONTO
+// ============================================================
+
+function toggleDesconto() {
+  descontoAtivo = !descontoAtivo;
+  document.getElementById('toggle-desc').classList.toggle('on', descontoAtivo);
+  document.getElementById('toggle-label').innerHTML = 'Desconto: <strong>' + (descontoAtivo ? 'Ativado ✅' : 'Desativado') + '</strong>';
+  document.getElementById('campo-perc').style.display = descontoAtivo ? 'block' : 'none';
+}
+
+// ============================================================
+// CRUD PRODUTOS
+// ============================================================
+
+function salvarProduto() {
+  const nome   = document.getElementById('p-nome').value.trim();
+  const cat    = document.getElementById('p-cat').value;
+  const preco  = parseFloat(document.getElementById('p-preco').value);
+  const unid   = document.getElementById('p-unidade').value;
+  const foto   = document.getElementById('p-foto').value.trim();
+  const perc   = parseInt(document.getElementById('p-desconto').value) || 0;
+  const editId = document.getElementById('edit-id').value;
+
+  if (!nome || !cat || isNaN(preco) || !foto) {
+    alert('Preencha: nome, categoria, preço e foto!'); return;
+  }
+
+  if (editId) {
+    const idx = PRODUTOS.findIndex(p => p.id == editId);
+    if (idx !== -1) {
+      PRODUTOS[idx] = { ...PRODUTOS[idx], nome, categoria: cat, preco, unidade: unid, foto,
+        desconto: descontoAtivo ? perc : 0, descontoAtivo };
+    }
+    cancelarEdicao();
+  } else {
+    const novoId = Math.max(0, ...PRODUTOS.map(p => p.id)) + 1;
+    PRODUTOS.push({ id: novoId, nome, categoria: cat, preco, unidade: unid, foto,
+      desconto: descontoAtivo ? perc : 0, descontoAtivo,
+      estoque: 0, estoqueUnidade: 'unidade', vendas: 0, quantidadeMinima: 1 });
+    popularSelectsProdutos();
+  }
+
+  renderListaProdutos();
+  salvarProdutosAdmin();
+  mostrarAviso('Produto salvo!', 'success');
+}
+
+function limparForm() {
+  ['p-nome', 'p-preco', 'p-foto', 'p-desconto'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('p-cat').selectedIndex     = 0;
+  document.getElementById('p-unidade').selectedIndex = 0;
+  descontoAtivo = false;
+  document.getElementById('toggle-desc').classList.remove('on');
+  document.getElementById('toggle-label').innerHTML = 'Desconto: <strong>Desativado</strong>';
+  document.getElementById('campo-perc').style.display = 'none';
+  document.getElementById('edit-id').value = '';
+  document.getElementById('form-titulo').textContent = '➕ Adicionar Produto';
+  document.getElementById('btn-cancelar').style.display = 'none';
+}
+function cancelarEdicao() { limparForm(); }
+
+function editarProduto(id) {
+  const p = PRODUTOS.find(x => x.id == id);
+  if (!p) return;
+  document.getElementById('edit-id').value   = id;
+  document.getElementById('p-nome').value    = p.nome;
+  document.getElementById('p-cat').value     = p.categoria;
+  document.getElementById('p-preco').value   = p.preco;
+  document.getElementById('p-unidade').value = p.unidade;
+  document.getElementById('p-foto').value    = p.foto;
+  document.getElementById('p-desconto').value = p.desconto || 0;
+  descontoAtivo = !!p.descontoAtivo;
+  document.getElementById('toggle-desc').classList.toggle('on', descontoAtivo);
+  document.getElementById('toggle-label').innerHTML = 'Desconto: <strong>' + (descontoAtivo ? 'Ativado ✅' : 'Desativado') + '</strong>';
+  document.getElementById('campo-perc').style.display = descontoAtivo ? 'block' : 'none';
+  document.getElementById('form-titulo').textContent = '✏️ Editando: ' + p.nome;
+  document.getElementById('btn-cancelar').style.display = 'inline-block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleDescontoRapido(id) {
+  const p = PRODUTOS.find(x => x.id == id);
+  if (!p) return;
+  p.descontoAtivo = !p.descontoAtivo;
+  salvarProdutosAdmin();
+  renderListaProdutos();
+  mostrarAviso(p.descontoAtivo ? `Desconto ativado para ${p.nome}` : `Desconto desativado para ${p.nome}`,
+    p.descontoAtivo ? 'success' : 'warning');
+}
+
+function removerProduto(id) {
+  const p = PRODUTOS.find(x => x.id == id);
+  if (!p) return;
+  if (!confirm(`Remover "${p.nome}"?`)) return;
+  PRODUTOS = PRODUTOS.filter(x => x.id != id);
+  renderListaProdutos();
+  salvarProdutosAdmin();
+  mostrarAviso('Produto removido!', 'danger');
+}
+
+function renderListaProdutos(lista) {
+  const itens = lista || PRODUTOS;
+  const container = document.getElementById('lista-admin-produtos');
+
+  if (itens.length === 0) {
+    container.innerHTML = lista
+      ? '<div class="resultado-vazio">🔎 Nenhum produto encontrado.</div>'
+      : '<p style="color:var(--cinza); text-align:center; padding:24px">Nenhum produto cadastrado.</p>';
+    return;
+  }
+
+  container.innerHTML = itens.map(p => {
+    const temDesc   = p.desconto > 0;
+    const precoDesc = temDesc ? (p.preco * (1 - p.desconto / 100)).toFixed(2).replace('.', ',') : null;
+    return `
+      <div class="produto-linha">
+        <img src="${p.foto}" onerror="this.src='https://placehold.co/54?text=?'" alt="${p.nome}">
+        <div class="prod-info">
+          <strong>${p.nome}</strong>
+          <span>R$ ${p.preco.toFixed(2).replace('.', ',')}/${p.unidade}
+            ${temDesc ? `→ R$ ${precoDesc} com ${p.desconto}%` : ''}
+          </span><br>
+          <span class="${p.descontoAtivo ? 'badge-on' : 'badge-off'}">
+            ${p.descontoAtivo ? '🟢 Desconto visível' : '⚫ Desconto oculto'}
+          </span>
+        </div>
+        <div class="prod-acoes">
+          <button class="btn-acao btn-azul" onclick="toggleDescontoRapido(${p.id})">
+            ${p.descontoAtivo ? '🔴 Ocultar desc.' : '🟢 Mostrar desc.'}
+          </button>
+          <button class="btn-acao btn-laranja" onclick="editarProduto(${p.id})">✏️ Editar</button>
+          <button class="btn-acao btn-vermelho" onclick="removerProduto(${p.id})">🗑️ Remover</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// ESTOQUE
+// ============================================================
+
+function renderEstoque(lista) {
+  const itens = lista || PRODUTOS;
+  const container = document.getElementById('lista-estoque');
+
+  if (itens.length === 0) {
+    container.innerHTML = '<div class="resultado-vazio">🔎 Nenhum item encontrado.</div>';
+    return;
+  }
+
+  container.innerHTML = itens.map(p => `
+    <div class="estoque-linha">
+      <div class="est-nome">
+        <img src="${p.foto}" onerror="this.style.display='none'"
+          style="width:36px;height:36px;border-radius:8px;object-fit:cover;vertical-align:middle;margin-right:8px;" alt="">
+        ${p.nome}
+      </div>
+      <div class="est-campo">
+        <label>Estoque</label>
+        <input type="number" id="est-qtd-${p.id}" value="${p.estoque || 0}" min="0" placeholder="0">
+      </div>
+      <div class="est-campo">
+        <label>Medida</label>
+        <select id="est-un-${p.id}">
+          <option value="unidade"       ${p.estoqueUnidade==='unidade'      ?'selected':''}>Unidade</option>
+          <option value="kg"            ${p.estoqueUnidade==='kg'           ?'selected':''}>Kg</option>
+          <option value="caixa"         ${p.estoqueUnidade==='caixa'        ?'selected':''}>Caixa</option>
+          <option value="grama"         ${p.estoqueUnidade==='grama'        ?'selected':''}>Grama</option>
+          <option value="maço"          ${p.estoqueUnidade==='maço'         ?'selected':''}>Maço</option>
+          <option value="caixa fechada" ${p.estoqueUnidade==='caixa fechada'?'selected':''}>Caixa Fechada</option>
+        </select>
+      </div>
+      <div class="est-campo">
+        <label>Vendas</label>
+        <input type="number" value="${p.vendas || 0}" disabled style="background:#f3f3f3;">
+      </div>
+    </div>
+  `).join('');
+}
+
+function salvarEstoque() {
+  PRODUTOS.forEach(p => {
+    const qtd = document.getElementById('est-qtd-' + p.id);
+    const un  = document.getElementById('est-un-'  + p.id);
+    if (qtd) p.estoque = parseFloat(qtd.value) || 0;
+    if (un)  p.estoqueUnidade = un.value;
+  });
+  salvarProdutosAdmin();
+  mostrarAviso('Estoque salvo!', 'success');
+}
+
+// ============================================================
+// GRÁFICO MAIS VENDIDOS
+// ============================================================
+
+function renderGrafico(lista) {
+  const itens  = lista || PRODUTOS;
+  const sorted = [...itens].sort((a, b) => (b.vendas || 0) - (a.vendas || 0)).slice(0, 8);
+  const max    = Math.max(...sorted.map(p => p.vendas || 0), 1);
+
+  document.getElementById('grafico-vendas').innerHTML = sorted.map(p => {
+    const h = Math.max(8, Math.round(((p.vendas || 0) / max) * 160));
+    return `
+      <div class="bar-item">
+        <span class="bar-val">${p.vendas || 0}</span>
+        <div class="bar" style="height:${h}px;"></div>
+        <span class="bar-nome">${p.nome.split(' ')[0]}</span>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('ranking-lista').innerHTML = sorted.map((p, i) => `
+    <div class="produto-linha">
+      <div style="font-family:'Syne',sans-serif; font-size:1.3rem; min-width:32px; text-align:center;">
+        ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}
+      </div>
+      <img src="${p.foto}" onerror="this.src='https://placehold.co/54?text=?'" alt="${p.nome}">
+      <div class="prod-info">
+        <strong>${p.nome}</strong>
+        <span>${p.vendas || 0} vendas registradas</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// FINANCEIRO
+// ============================================================
+
+function getPedidos()   { try { return JSON.parse(localStorage.getItem(LS_PEDIDOS)  || "[]"); } catch(e) { return []; } }
+function setPedidos(l)  { localStorage.setItem(LS_PEDIDOS, JSON.stringify(l)); }
+function getDespesas()  { try { return JSON.parse(localStorage.getItem(LS_DESPESAS) || "[]"); } catch(e) { return []; } }
+function setDespesas(l) { localStorage.setItem(LS_DESPESAS, JSON.stringify(l)); }
+function getDesperdicios()   { try { return JSON.parse(localStorage.getItem(LS_DESPERDICIOS)     || "[]"); } catch(e) { return []; } }
+function setDesperdicios(l)  { localStorage.setItem(LS_DESPERDICIOS, JSON.stringify(l)); }
+function getEntradasEstoque() { try { return JSON.parse(localStorage.getItem(LS_ENTRADAS_ESTOQUE) || "[]"); } catch(e) { return []; } }
+function setEntradasEstoque(l){ localStorage.setItem(LS_ENTRADAS_ESTOQUE, JSON.stringify(l)); }
+
+function obterDataPedido(pedido) {
+  return pedido.data || pedido.dataHora || pedido.dataPedido || '';
+}
+function dentroDoDia(dataISO) {
+  return new Date(dataISO).toDateString() === new Date().toDateString();
+}
+function dentroDaSemana(dataISO) {
+  return (new Date() - new Date(dataISO)) / (1000*60*60*24) <= 7;
+}
+function dentroDoMes(dataISO) {
+  const d = new Date(dataISO), a = new Date();
+  return d.getMonth() === a.getMonth() && d.getFullYear() === a.getFullYear();
+}
+function dinheiro(v) { return "R$ " + (v || 0).toFixed(2).replace(".", ","); }
+
+function obterValorUnitarioUltimaEntrada(produtoId) {
+  const entradas = getEntradasEstoque();
+  const ultima   = entradas.find(e => e.produtoId == produtoId);
+  return ultima ? ultima.valorUnitario : 0;
+}
+
+function adicionarDespesa() {
+  const tipo  = document.getElementById('d-tipo').value;
+  const valor = parseFloat(document.getElementById('d-valor').value);
+  const desc  = document.getElementById('d-desc').value.trim();
+  if (!desc || isNaN(valor) || valor <= 0) { alert("Preencha descrição e valor!"); return; }
+  const despesas = getDespesas();
+  despesas.unshift({ id: Date.now(), tipo, valor, descricao: desc, data: new Date().toISOString() });
+  setDespesas(despesas);
+  document.getElementById('d-valor').value = '';
+  document.getElementById('d-desc').value  = '';
+  mostrarAviso('Despesa registrada!', 'success');
+  renderFinanceiro();
+}
+
+function renderFinanceiro() {
+  const pedidos      = getPedidos();
+  const despesas     = getDespesas();
+  const desperdicios = getDesperdicios();
+
+  const receitaTotal     = pedidos.reduce((a,p) => a + (p.total || 0), 0);
+  const despesasTotal    = despesas.reduce((a,d) => a + (d.valor || 0), 0);
+  const desperdiciosTotal= desperdicios.reduce((a,d) => a + (d.valorPerdido || 0), 0);
+
+  const receitaDia    = pedidos.filter(p => dentroDoDia(obterDataPedido(p))).reduce((a,p) => a + (p.total || 0), 0);
+  const receitaSemana = pedidos.filter(p => dentroDaSemana(obterDataPedido(p))).reduce((a,p) => a + (p.total || 0), 0);
+  const receitaMes    = pedidos.filter(p => dentroDoMes(obterDataPedido(p))).reduce((a,p) => a + (p.total || 0), 0);
+  const despesasMes   = despesas.filter(d => dentroDoMes(d.data)).reduce((a,d) => a + (d.valor || 0), 0);
+  const desperdiciosMes = desperdicios.filter(d => dentroDoMes(d.data)).reduce((a,d) => a + (d.valorPerdido || 0), 0);
+
+  const qtdPedidos   = pedidos.length;
+  const ticketMedio  = qtdPedidos > 0 ? (receitaTotal / qtdPedidos) : 0;
+  const totalSaidas  = despesasTotal + desperdiciosTotal;
+  const lucroEstimado = receitaTotal - totalSaidas;
+
+  document.getElementById('stats-fin').innerHTML = `
+    <div class="stat-card"><div class="num">${dinheiro(receitaDia)}</div><div class="leg">Vendas Hoje</div></div>
+    <div class="stat-card"><div class="num">${dinheiro(receitaSemana)}</div><div class="leg">Vendas Semana</div></div>
+    <div class="stat-card"><div class="num">${dinheiro(receitaMes)}</div><div class="leg">Vendas Mês</div></div>
+    <div class="stat-card"><div class="num">${qtdPedidos}</div><div class="leg">Pedidos</div></div>
+    <div class="stat-card"><div class="num">${dinheiro(ticketMedio)}</div><div class="leg">Ticket Médio</div></div>
+    <div class="stat-card"><div class="num">${dinheiro(despesasMes)}</div><div class="leg">Despesas Mês</div></div>
+    <div class="stat-card"><div class="num">${dinheiro(desperdiciosMes)}</div><div class="leg">Desperdícios Mês</div></div>
+    <div class="stat-card"><div class="num">${dinheiro(lucroEstimado)}</div><div class="leg">Lucro Estimado</div></div>
+  `;
+
+  // Despesas
+  const listaDesp = document.getElementById('lista-despesas');
+  listaDesp.innerHTML = despesas.length === 0
+    ? '<p style="color:var(--cinza); text-align:center; padding:18px;">Nenhuma despesa registrada.</p>'
+    : despesas.map(d => `
+        <div class="linha-fin">
+          <div class="linha-fin-top">
+            <div><strong>${d.descricao}</strong><small>${d.tipo.toUpperCase()} • ${new Date(d.data).toLocaleString('pt-BR')}</small></div>
+            <div class="valor saida">${dinheiro(d.valor)}</div>
+          </div>
+          <div class="linha-fin-botoes">
+            <button class="btn-acao btn-vermelho" onclick="pedirSenhaExcluir('despesa', ${d.id})">🗑️ Excluir</button>
+          </div>
+        </div>
+      `).join('');
+
+  // Desperdícios
+  const listaDesp2 = document.getElementById('lista-desperdicios');
+  listaDesp2.innerHTML = desperdicios.length === 0
+    ? '<p style="color:var(--cinza); text-align:center; padding:18px;">Nenhum desperdício registrado.</p>'
+    : desperdicios.map(d => `
+        <div class="linha-fin">
+          <div class="linha-fin-top">
+            <div><strong>${d.produtoNome}</strong><small>${new Date(d.data).toLocaleString('pt-BR')}</small></div>
+            <div class="valor saida">${dinheiro(d.valorPerdido)}</div>
+          </div>
+          <div class="linha-fin-itens">
+            <strong>Quantidade:</strong> ${d.quantidade} ${d.unidade}<br>
+            <strong>Valor Unitário:</strong> ${dinheiro(d.valorUnitario)}<br>
+            <strong>Prejuízo Total:</strong> ${dinheiro(d.valorPerdido)}
+          </div>
+          <div class="linha-fin-botoes">
+            <button class="btn-acao btn-vermelho" onclick="pedirSenhaExcluir('desperdicio', ${d.id})">🗑️ Excluir</button>
+          </div>
+        </div>
+      `).join('');
+
+  // Pedidos
+  renderListaPedidos(pedidos);
+}
+
+function renderListaPedidos(pedidos) {
+  const listaPed = document.getElementById('lista-pedidos');
+  listaPed.innerHTML = pedidos.length === 0
+    ? '<p style="color:var(--cinza); text-align:center; padding:18px;">Nenhuma venda registrada ainda.</p>'
+    : pedidos.map(p => {
+        const itensTxt   = (p.itens || []).map(i => `• ${i.nome} x${i.qtd} — ${dinheiro(i.total || (i.preco * i.qtd))}`).join('<br>');
+        const pedidoId   = p.id || p.idPedido;
+        const dataPedido = obterDataPedido(p);
+        return `
+          <div class="linha-fin">
+            <div class="linha-fin-top">
+              <div>
+                <strong>Pedido #${pedidoId}</strong>
+                <small>${new Date(dataPedido).toLocaleString('pt-BR')} • ${p.tipoEntrega || '—'} • ${p.pagamento || '—'}</small><br>
+                <small>${p.clienteNome || p.nome ? 'Cliente: ' + (p.clienteNome || p.nome) : ''}
+                  ${p.clienteTel || p.telefone ? ' • ' + (p.clienteTel || p.telefone) : ''}</small>
+              </div>
+              <div class="valor">${dinheiro(p.total)}</div>
+            </div>
+            <div class="linha-fin-itens">
+              ${itensTxt}<br><br>
+              <strong>Subtotal:</strong> ${dinheiro(p.subtotal)}<br>
+              <strong>Entrega:</strong> ${dinheiro(p.taxaEntrega)}<br>
+              <strong>Total:</strong> ${dinheiro(p.total)}
+            </div>
+            <div class="linha-fin-botoes">
+              <button class="btn-acao btn-vermelho" onclick="pedirSenhaExcluir('pedido', ${pedidoId})">🗑️ Excluir</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+}
+
+// ============================================================
+// MODAL SENHA EXCLUSÃO
+// ============================================================
+
+function pedirSenhaExcluir(tipo, id) {
+  excluirTipo = tipo;
+  excluirId   = id;
+  document.getElementById('senha-confirmacao').value     = '';
+  document.getElementById('erro-senha-confirm').style.display = 'none';
+  document.getElementById('senha-modal-titulo').textContent =
+    tipo === 'desperdicio' ? '🔒 Senha Admin necessária' : '🔐 Confirme a senha';
+  document.getElementById('senha-modal-text').textContent =
+    'Digite a senha admin para confirmar esta exclusão.';
+  document.getElementById('overlay-senha').classList.add('aberto');
+  setTimeout(() => document.getElementById('senha-confirmacao').focus(), 50);
+}
+
+function fecharModalSenha() {
+  document.getElementById('overlay-senha').classList.remove('aberto');
+  excluirTipo = null;
+  excluirId   = null;
+}
+
+function fecharModalSenhaSeFora(e) {
+  if (e.target.id === 'overlay-senha') fecharModalSenha();
+}
+
+function confirmarExclusao() {
+  const senha      = document.getElementById('senha-confirmacao').value;
+  const senhaAdmin = localStorage.getItem(LS_ADMIN_SENHA) || ADMIN_SENHA;
+
+  if (senha !== senhaAdmin) {
+    document.getElementById('erro-senha-confirm').style.display = 'block';
+    return;
+  }
+
+  if (excluirTipo === 'pedido') {
+    let pedidos = getPedidos();
+    const pedido = pedidos.find(p => (p.id || p.idPedido) == excluirId);
+    if (pedido && pedido.itens) {
+      pedido.itens.forEach(item => {
+        const prod = PRODUTOS.find(p => p.id === item.id);
+        if (prod) prod.estoque = (parseInt(prod.estoque) || 0) + item.qtd;
+      });
+      salvarProdutosAdmin();
+    }
+    setPedidos(pedidos.filter(p => (p.id || p.idPedido) != excluirId));
+    mostrarAviso('Pedido excluído!', 'danger');
+
+  } else if (excluirTipo === 'despesa') {
+    setDespesas(getDespesas().filter(d => d.id != excluirId));
+    mostrarAviso('Despesa excluída!', 'danger');
+
+  } else if (excluirTipo === 'desperdicio') {
+    setDesperdicios(getDesperdicios().filter(d => d.id != excluirId));
+    mostrarAviso('Desperdício excluído!', 'danger');
+  }
+
+  fecharModalSenha();
+  renderFinanceiro();
+  renderEstoque();
+}
+
+// ============================================================
+// ENTRADA DE ESTOQUE
+// ============================================================
+
+function registrarEntradaEstoque() {
+  const prodId       = document.getElementById('entrada-produto').value;
+  const qtd          = parseFloat(document.getElementById('entrada-qtd').value);
+  const unidade      = document.getElementById('entrada-unidade').value;
+  const valorUnitario= parseFloat(document.getElementById('entrada-valor-unitario').value);
+
+  if (!prodId || !qtd || qtd <= 0 || !valorUnitario || valorUnitario <= 0) {
+    alert("Preencha produto, quantidade e valor unitário!"); return;
+  }
+
+  const prod = PRODUTOS.find(p => p.id == prodId);
+  if (!prod) return;
+
+  acaoMaster = () => {
+    prod.estoque = (parseFloat(prod.estoque) || 0) + qtd;
+    prod.custoFornecedor = valorUnitario;
+    const entradas = getEntradasEstoque();
+    entradas.unshift({
+      id: Date.now(), produtoId: prodId, produtoNome: prod.nome,
+      quantidade: qtd, unidade, valorUnitario,
+      valorTotalPago: qtd * valorUnitario, data: new Date().toISOString()
+    });
+    setEntradasEstoque(entradas);
+    salvarProdutosAdmin();
+    document.getElementById('entrada-qtd').value          = '';
+    document.getElementById('entrada-valor-unitario').value = '';
+    mostrarAviso(`Entrada registrada! Custo: ${dinheiro(valorUnitario)}/un`, 'success');
+    renderEstoque();
+    renderFinanceiro();
+  };
+  pedirSenhaMaster();
+}
+
+// ============================================================
+// DESPERDÍCIO
+// ============================================================
+
+function registrarDesperdicio() {
+  const prodId  = document.getElementById('desperdicio-produto').value;
+  const qtd     = parseFloat(document.getElementById('desperdicio-qtd').value);
+  const unidade = document.getElementById('desperdicio-unidade').value;
+
+  if (!prodId || !qtd || qtd <= 0) { alert("Preencha produto e quantidade!"); return; }
+
+  const prod = PRODUTOS.find(p => p.id == prodId);
+  if (!prod) return;
+
+  const estoqueAtual = parseFloat(prod.estoque) || 0;
+  if (qtd > estoqueAtual) { alert("Quantidade maior que o estoque atual!"); return; }
+
+  const valorUnitario = obterValorUnitarioUltimaEntrada(prodId) || prod.custoFornecedor || 0;
+
+  acaoMaster = () => {
+    prod.estoque = estoqueAtual - qtd;
+    const desperdicios = getDesperdicios();
+    desperdicios.unshift({
+      id: Date.now(), produtoId: prodId, produtoNome: prod.nome,
+      quantidade: qtd, unidade, valorUnitario,
+      valorPerdido: qtd * valorUnitario, data: new Date().toISOString()
+    });
+    setDesperdicios(desperdicios);
+    salvarProdutosAdmin();
+    document.getElementById('desperdicio-qtd').value = '';
+    mostrarAviso(`Desperdício registrado! Prejuízo: ${dinheiro(qtd * valorUnitario)}`, 'warning');
+    renderEstoque();
+    renderFinanceiro();
+  };
+  pedirSenhaMaster();
+}
+
+// ============================================================
+// MODAL SENHA MASTER
+// ============================================================
+
+function pedirSenhaMaster(tipo = 'master') {
+  tipoAcaoSegura = tipo;
+  document.getElementById('usuario-master-confirmacao').value   = '';
+  document.getElementById('senha-master-confirmacao').value     = '';
+  document.getElementById('erro-master-confirm').style.display  = 'none';
+
+  document.getElementById('master-modal-titulo').textContent = tipo === 'reset' ? '🔒 Reiniciar Loja' : '🔒 Senha Master';
+  document.getElementById('master-modal-text').textContent   = tipo === 'reset'
+    ? 'Digite o usuário e senha do criador para confirmar a restauração.'
+    : 'Digite o usuário e a senha master para confirmar esta ação.';
+
+  document.getElementById('overlay-master').classList.add('aberto');
+  setTimeout(() => document.getElementById('usuario-master-confirmacao').focus(), 50);
+}
+
+function fecharModalMaster() {
+  document.getElementById('overlay-master').classList.remove('aberto');
+  acaoMaster     = null;
+  tipoAcaoSegura = null;
+}
+
+function fecharModalMasterSeFora(e) {
+  if (e.target.id === 'overlay-master') fecharModalMaster();
+}
+
+function confirmarAcaoMaster() {
+  const usuario     = document.getElementById('usuario-master-confirmacao').value.trim();
+  const senha       = document.getElementById('senha-master-confirmacao').value.replace(/\s/g, '');
+  const usuarioMaster = localStorage.getItem(LS_MASTER_USUARIO) || MASTER_USUARIO;
+  const senhaMaster   = localStorage.getItem(LS_MASTER_SENHA)   || SENHA_MASTER;
+  const usuarioReset  = localStorage.getItem(LS_RESET_USUARIO)  || RESET_USUARIO;
+  const senhaReset    = localStorage.getItem(LS_RESET_SENHA)    || RESET_SENHA;
+
+  const valido = tipoAcaoSegura === 'reset'
+    ? (usuario === usuarioReset  && senha === senhaReset)
+    : (usuario === usuarioMaster && senha === senhaMaster);
+
+  if (!valido) {
+    document.getElementById('erro-master-confirm').style.display = 'block';
+    return;
+  }
+
+  if (acaoMaster) acaoMaster();
+  fecharModalMaster();
+}
+
+// ============================================================
+// RESETAR LOJA
+// ============================================================
+
+function resetarLoja() {
+  acaoMaster = () => {
+    [LS_PEDIDOS, LS_DESPESAS, LS_DESPERDICIOS, LS_ENTRADAS_ESTOQUE,
+     LS_CARRINHO, LS_ULTIMA_ABERTURA].forEach(k => localStorage.removeItem(k));
+
+    PRODUTOS.forEach(prod => { prod.estoque = 0; prod.vendas = 0; });
+    salvarProdutosAdmin();
+    renderListaProdutos();
+    renderEstoque();
+    renderFinanceiro();
+    renderConfig();
+    mostrarAviso('Loja reiniciada! Registros zerados.', 'success');
+  };
+  pedirSenhaMaster('reset');
+}
+
+// ============================================================
+// CONFIGURAÇÕES
+// ============================================================
+
+function renderConfig() {
+  const abertura = localStorage.getItem(LS_ULTIMA_ABERTURA);
+  document.getElementById('ultima-abertura').textContent =
+    abertura ? new Date(abertura).toLocaleString('pt-BR') : 'Nunca aberto';
+
+  document.getElementById('config-admin-usuario').textContent = ADMIN_USUARIO;
+  document.getElementById('config-admin-senha').textContent   = '********';
+  document.getElementById('config-master-usuario').textContent = MASTER_USUARIO;
+  document.getElementById('config-master-senha').textContent   = '********';
+}
+
+// ============================================================
+// TOAST AVISO
+// ============================================================
+
+function mostrarAviso(msg, tipo = 'success') {
+  const el   = document.getElementById('aviso-float');
+  const icon = el.querySelector('.icon');
+  const text = el.querySelector('.text');
+  el.className = tipo;
+  icon.textContent = tipo === 'danger' ? '✖' : tipo === 'warning' ? '⚠️' : '✅';
+  text.textContent = msg;
+  el.classList.add('show');
+  if (window.avisoTimeout) clearTimeout(window.avisoTimeout);
+  window.avisoTimeout = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// BUSCA — PRODUTOS
+// ============================================================
+
+function filtrarProdutos(termo) {
+  document.getElementById('limpar-busca-produtos').classList.toggle('visivel', termo.trim() !== '');
+  if (termo.trim() === '') { renderListaProdutos(); return; }
+  const t = termo.toLowerCase();
+  renderListaProdutos(PRODUTOS.filter(p =>
+    (p.nome||'').toLowerCase().includes(t) ||
+    (p.categoria||'').toLowerCase().includes(t) ||
+    String(p.id).includes(t)
+  ));
+}
+function limparBuscaProdutos() {
+  document.getElementById('busca-produtos').value = '';
+  document.getElementById('limpar-busca-produtos').classList.remove('visivel');
+  renderListaProdutos();
+}
+
+// BUSCA — ESTOQUE
+function filtrarEstoque(termo) {
+  document.getElementById('limpar-busca-estoque').classList.toggle('visivel', termo.trim() !== '');
+  if (termo.trim() === '') { renderEstoque(); return; }
+  const t = termo.toLowerCase();
+  renderEstoque(PRODUTOS.filter(p =>
+    (p.nome||'').toLowerCase().includes(t) || String(p.id).includes(t)
+  ));
+}
+function limparBuscaEstoque() {
+  document.getElementById('busca-estoque').value = '';
+  document.getElementById('limpar-busca-estoque').classList.remove('visivel');
+  renderEstoque();
+}
+
+// BUSCA — VENDAS
+function filtrarVendas(termo) {
+  document.getElementById('limpar-busca-vendas').classList.toggle('visivel', termo.trim() !== '');
+  if (termo.trim() === '') { renderGrafico(); return; }
+  const t = termo.toLowerCase();
+  renderGrafico(PRODUTOS.filter(p => (p.nome||'').toLowerCase().includes(t)));
+}
+function limparBuscaVendas() {
+  document.getElementById('busca-vendas').value = '';
+  document.getElementById('limpar-busca-vendas').classList.remove('visivel');
+  renderGrafico();
+}
+
+// BUSCA — FINANCEIRO (filtra pedidos)
+function filtrarFinanceiro(termo) {
+  document.getElementById('limpar-busca-financeiro').classList.toggle('visivel', termo.trim() !== '');
+  if (termo.trim() === '') { renderListaPedidos(getPedidos()); return; }
+  const t = termo.toLowerCase();
+  renderListaPedidos(getPedidos().filter(p =>
+    (p.clienteNome||p.nome||'').toLowerCase().includes(t) ||
+    (p.clienteTel||p.telefone||'').toString().includes(t) ||
+    String(p.total||'').includes(t) ||
+    new Date(obterDataPedido(p)).toLocaleString('pt-BR').includes(t)
+  ));
+}
+function limparBuscaFinanceiro() {
+  document.getElementById('busca-financeiro').value = '';
+  document.getElementById('limpar-busca-financeiro').classList.remove('visivel');
+  renderListaPedidos(getPedidos());
+}
+
+</script>
+</body>
+</html>
